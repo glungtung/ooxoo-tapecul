@@ -5,6 +5,7 @@
 #include "ofxParallax.h"
 #include "ofxOsc.h"
 #include "ofxEasing.h"
+#include "ofxHapPlayer.h"
 
 #define PORT 8001
 
@@ -53,5 +54,6 @@ class ofApp : public ofBaseApp{
     
     int current_msg_string;
     
+    ofxHapPlayer player;
 
 };

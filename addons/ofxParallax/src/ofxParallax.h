@@ -10,13 +10,17 @@
 
 #include "ofMain.h"
 #include "ofxParallaxShader.h"
+#include "ofxHapPlayer.h"
 
 
 struct ofxParallaxLayer {
     ofxParallaxLayer()
-        : texture(NULL), pos(0,0) { }
+        : texture(NULL), pos(0,0), player(NULL) { }
     ~ofxParallaxLayer() {
-        if(texture != NULL) {
+
+        // only for image, managed inside this class
+        // videos are managed in main app
+        if(texture != NULL && player == NULL) {
             delete texture;
             texture = NULL;
         }
@@ -48,16 +52,33 @@ struct ofxParallaxLayer {
         texture = tex;
         pos = position;
     }
+
+    void setup(ofxHapPlayer * play, ofPoint position) {
+        if(player != NULL) {
+            delete player;
+            player = NULL;
+        }
+        player = play;
+        pos = position;
+    }
+    
+
     
     void draw(ofPoint offset) {
+        if (player && player->isInitialized()) {
+            texture = player->getTexture();
+        }
+        
         transformation.makeIdentityMatrix();
         ofPushMatrix();
         transformation.preMultTranslate(pos);
-        texture->draw(0, 0);
+        if (texture != NULL)
+            texture->draw(0, 0);
         ofPopMatrix();
     }
     
     // Variables
+    ofxHapPlayer *player;
     ofTexture * texture;
     ofPoint pos;
     ofMatrix4x4 transformation;
@@ -95,6 +116,12 @@ struct ofxParallaxLayers {
     void addToLayers(string path, ofPoint pos) {
         ofxParallaxLayer * pnew =  new ofxParallaxLayer();
         pnew->setup(path, pos);
+        layer.push_back(pnew);
+    }
+
+    void addToLayers(ofxHapPlayer *play, ofPoint pos) {
+        ofxParallaxLayer * pnew =  new ofxParallaxLayer();
+        pnew->setup(play, pos);
         layer.push_back(pnew);
     }
     
@@ -389,6 +416,13 @@ public:
         if(layer <= layers.size()-1) {
             // all good
             layers[layer]->addToLayers(imagePath, pos);
+        }
+    }
+    
+    void addVideoToLayer(int layer, ofxHapPlayer *play, ofPoint pos) {
+        if(layer <= layers.size()-1) {
+            // all good
+            layers[layer]->addToLayers(play, pos);
         }
     }
     

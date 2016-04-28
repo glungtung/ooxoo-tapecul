@@ -2,6 +2,13 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    // Load a movie file
+    player.load("movies/ptitbonhomme.mov");
+    // Start playback
+    player.setLoopState(OF_LOOP_NORMAL);
+    player.play();
+    
+    
     blurID = 0;
     
     worldSpeed = 60;
@@ -31,13 +38,14 @@ void ofApp::setup(){
     //parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(1236, 768), 5 * 80);
     parallax.addNewLayer(0, ofVec2f(0, 0), ofVec2f(2536, 768), 0.2, ofVec2f(-9000, 9000));
     parallax.addNewLayer(1, ofVec2f(0, 0), ofVec2f(1236, 768), 1, ofVec2f(-9000, 9000));
-    parallax.addNewLayer(2, ofVec2f(600, 0), ofVec2f(1236, 768), -2, ofVec2f(-9000, 9000));
+    parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(800, 800), -2, ofVec2f(-9000, 9000));
     parallax.unblurAll();
     
     
     parallax.addImageToLayer(0, "images/3-background.jpg", ofPoint(0, 0));
     parallax.addImageToLayer(1, "images/2-middle.png", ofPoint(0, 0));
-    parallax.addImageToLayer(2, "images/1-foreground.png", ofPoint(1000, 0));
+//    parallax.addImageToLayer(2, "images/1-foreground.png", ofPoint(1000, 0));
+    parallax.addVideoToLayer(2, &player, ofPoint(0, 0));
     
     isTouched = true;
 
@@ -45,6 +53,8 @@ void ofApp::setup(){
     receiver.setup(PORT);
     receivedX = 0.;
     prevReceivedX = 0.;
+    
+
 
 }
 
@@ -52,6 +62,9 @@ void ofApp::setup(){
 void ofApp::update(){
 
     ofSetWindowTitle(ofToString(ofGetFrameRate()));
+    
+    player.update();
+
     
     // check for waiting messages
     while(receiver.hasWaitingMessages()){
