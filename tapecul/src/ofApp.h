@@ -6,6 +6,7 @@
 #include "ofxOsc.h"
 #include "ofxEasing.h"
 #include "ofxHapPlayer.h"
+#include "ofEvents.h"
 
 #define PORT 8001
 
@@ -29,6 +30,17 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
+    void setupArduino(const int & version);
+//    void digitalPinChanged(const int & pinNum);
+    void analogPinChanged(const int & pinNum);
+    void updateArduino();
+    
+    
+    ofArduino	ard;
+    bool		bSetupArduino;			// flag variable for setting up arduino once
+    
+    float accelX, forcePressureLeft;
+    
     bool isTravellingRight;
     
     ofPoint touchPoint;
@@ -54,6 +66,6 @@ class ofApp : public ofBaseApp{
     
     int current_msg_string;
     
-    ofxHapPlayer player;
+    ofxHapPlayer lune, lion, nuage3, nuage4, nuage5;
 
 };

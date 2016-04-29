@@ -160,14 +160,14 @@ struct ofxParallaxLayers {
         if(layer.size() != 0) {
             lastFrameCollision = false;
             if(impulse != 0.0) {
-                offset.x = offset.x - (impulse / (speed * ofGetLastFrameTime()));
+                offset.y = offset.y - (impulse / (speed * ofGetLastFrameTime()));
             }
            
-            if(offset.x <= collision.x) {
-                offset.x = collision.x;
+            if(offset.y <= collision.x) {
+                offset.y = collision.x;
                 lastFrameCollision = true;
-            } else if(offset.x >= collision.y) {
-                offset.x = collision.y;
+            } else if(offset.y >= collision.y) {
+                offset.y = collision.y;
                 lastFrameCollision = true;
             }
             
@@ -189,13 +189,13 @@ struct ofxParallaxLayers {
         
         if(layer.size() != 0) {
             lastFrameCollision = false;
-            offset.x = origin.x - target * ofGetWidth() * speed;
+            offset.y = origin.x - target * ofGetWidth() * speed;
             
-            if(offset.x <= collision.x) {
-                offset.x = collision.x;
+            if(offset.y <= collision.x) {
+                offset.y = collision.x;
                 lastFrameCollision = true;
-            } else if(offset.x >= collision.y) {
-                offset.x = collision.y;
+            } else if(offset.y >= collision.y) {
+                offset.y = collision.y;
                 lastFrameCollision = true;
             }
 
@@ -246,7 +246,7 @@ struct ofxParallaxLayers {
         shader->setUniform1f("textureWidth", ofGetWidth());
         shader->setUniform1f("bloom", isBlurred);
         ofPushMatrix();
-        ofTranslate(offset.x * -1, 0);
+        ofTranslate(offset.y * -1, 0);
     }
     
     void endShader() {
@@ -399,7 +399,7 @@ public:
 
             ofxParallaxLayers* theLayer = new ofxParallaxLayers();
             if(collision == ofVec2f::zero()) {
-                collision = ofPoint((origin.x - size.x/2), origin.x + size.x);
+                collision = ofPoint((origin.y - size.y/2), origin.y + size.y);
             }
             theLayer->collision = collision;
             theLayer->offset = origin;

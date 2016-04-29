@@ -2,12 +2,28 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    // Load a movie file
-    player.load("movies/ptitbonhomme.mov");
-    // Start playback
-    player.setLoopState(OF_LOOP_NORMAL);
-    player.play();
+   // ofSetOrientation(OF_ORIENTATION_90_LEFT);
+    ofScale(0.6, 0.6);
     
+    // Load a movie file
+    lune.load("movies/P-lune-1.mov");
+    lion.load("movies/P-nuage-lion-2.mov");
+    nuage3.load("movies/P-nuage-3.mov");
+    nuage4.load("movies/P-nuage-4.mov");
+    nuage5.load("movies/P-nuage-5.mov");
+    
+    // Start playback
+    lune.setLoopState(OF_LOOP_NORMAL);
+    lion.setLoopState(OF_LOOP_NORMAL);
+    nuage3.setLoopState(OF_LOOP_NORMAL);
+    nuage4.setLoopState(OF_LOOP_NORMAL);
+    nuage5.setLoopState(OF_LOOP_NORMAL);
+    
+    lune.play();
+    lion.play();
+    nuage3.play();
+    nuage4.play();
+    nuage5.play();
     
     blurID = 0;
     
@@ -36,16 +52,22 @@ void ofApp::setup(){
     //parallax.addNewLayer(0, ofVec2f(0, 0), ofVec2f(1536, 768), 5 * 360);
     //parallax.addNewLayer(1, ofVec2f(0, 0), ofVec2f(1236, 768), 5 * 130);
     //parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(1236, 768), 5 * 80);
-    parallax.addNewLayer(0, ofVec2f(0, 0), ofVec2f(2536, 768), 0.2, ofVec2f(-9000, 9000));
-    parallax.addNewLayer(1, ofVec2f(0, 0), ofVec2f(1236, 768), 1, ofVec2f(-9000, 9000));
-    parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(800, 800), -2, ofVec2f(-9000, 9000));
+    parallax.addNewLayer(0, ofVec2f(0, 0), ofVec2f(2536, 768), 0.1, ofVec2f(-9000, 9000)); // ciel
+    parallax.addNewLayer(1, ofVec2f(0, 0), ofVec2f(1280, 768), 0.3, ofVec2f(-9000, 9000)); // lune
+    parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(1280, 800), 0.7, ofVec2f(-9000, 9000));   // lion
+    parallax.addNewLayer(3, ofVec2f(0, 0), ofVec2f(1280, 800), 0.8, ofVec2f(-9000, 9000));   // nuages
+    parallax.addNewLayer(4, ofVec2f(0, 0), ofVec2f(1280, 800), 1, ofVec2f(-9000, 9000));   // nuages
+    parallax.addNewLayer(5, ofVec2f(0, 0), ofVec2f(1280, 800), 1.3, ofVec2f(-9000, 9000));   // nuages
     parallax.unblurAll();
     
     
-    parallax.addImageToLayer(0, "images/3-background.jpg", ofPoint(0, 0));
-    parallax.addImageToLayer(1, "images/2-middle.png", ofPoint(0, 0));
+    parallax.addImageToLayer(0, "images/P-ciel.jpg", ofPoint(0, 0));
+    parallax.addVideoToLayer(1, &lune, ofPoint(0, 0));
 //    parallax.addImageToLayer(2, "images/1-foreground.png", ofPoint(1000, 0));
-    parallax.addVideoToLayer(2, &player, ofPoint(0, 0));
+    parallax.addVideoToLayer(2, &lion, ofPoint(0, 0));
+    parallax.addVideoToLayer(3, &nuage3, ofPoint(0, 0));
+    parallax.addVideoToLayer(4, &nuage4, ofPoint(0, 0));
+    parallax.addVideoToLayer(5, &nuage5, ofPoint(0, 0));
     
     isTouched = true;
 
@@ -55,19 +77,33 @@ void ofApp::setup(){
     prevReceivedX = 0.;
     
 
-
+    // replace the string below with the serial port for your Arduino board
+    // you can get this from the Arduino application or via command line
+    // for OSX, in your terminal type "ls /dev/tty.*" to get a list of serial devices
+    ard.connect("/dev/cu.usbmodemfa131", 57600);
+    
+    // listen for EInitialized notification. this indicates that
+    // the arduino is ready to receive commands and it is safe to
+    // call setupArduino()
+    ofAddListener(ard.EInitialized, this, &ofApp::setupArduino);
+    bSetupArduino	= false;	// flag so we setup arduino when its ready, you don't need to touch this :)
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-
     ofSetWindowTitle(ofToString(ofGetFrameRate()));
     
-    player.update();
+    updateArduino();
+    
+    lune.update();
+    lion.update();
+    nuage3.update();
+    nuage4.update();
+    nuage5.update();
 
     
     // check for waiting messages
-    while(receiver.hasWaitingMessages()){
+/*    while(receiver.hasWaitingMessages()){
         // get the next message
         ofxOscMessage m;
         receiver.getNextMessage(m);
@@ -81,7 +117,14 @@ void ofApp::update(){
                 prevX.pop_back();
         }
     }
+ */
     
+    receivedX = accelX;
+    prevX.push_front(receivedX);
+    if (prevX.size() > 5)
+        prevX.pop_back();
+
+
     avgX = 0;
     for (auto x : prevX)
         avgX += x;
@@ -91,11 +134,11 @@ void ofApp::update(){
     
    // if (abs(receivedX - prevReceivedX) > 0.01) {
     receivedX = prevReceivedX + (avgX - prevReceivedX) / 10;
-    cout << receivedX << endl;
+    //cout << receivedX << endl;
 
     prevReceivedX = receivedX;
-
-    targetX = ofxeasing::map(receivedX, 0.3, 0.7, 0., 1., ofxeasing::linear::easeIn);
+    targetX = receivedX;
+//    targetX = ofxeasing::map(receivedX, 0.3, 0.7, 0., 1., ofxeasing::linear::easeIn);
  //   }
     
     float diff = 0;
@@ -185,3 +228,54 @@ void ofApp::gotMessage(ofMessage msg){
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
 }
+
+
+
+//--------------------------------------------------------------
+void ofApp::setupArduino(const int & version) {
+    
+    // remove listener because we don't need it anymore
+    ofRemoveListener(ard.EInitialized, this, &ofApp::setupArduino);
+    
+    // it is now safe to send commands to the Arduino
+    bSetupArduino = true;
+    
+    // print firmware name and version to the console
+    ofLogNotice() << ard.getFirmwareName();
+    ofLogNotice() << "firmata v" << ard.getMajorFirmwareVersion() << "." << ard.getMinorFirmwareVersion();
+    
+    // Note: pins A0 - A5 can be used as digital input and output.
+    // Refer to them as pins 14 - 19 if using StandardFirmata from Arduino 1.0.
+    // If using Arduino 0022 or older, then use 16 - 21.
+    // Firmata pin numbering changed in version 2.3 (which is included in Arduino 1.0)
+    
+    // set pin A0 to analog input : X angle
+    ard.sendAnalogPinReporting(0, ARD_ANALOG);
+    // set pin A4 to analog input : force pressure
+    ard.sendAnalogPinReporting(4, ARD_ANALOG);
+    
+    // Listen for changes on the digital and analog pins
+//    ofAddListener(ard.EDigitalPinChanged, this, &ofApp::digitalPinChanged);
+    ofAddListener(ard.EAnalogPinChanged, this, &ofApp::analogPinChanged);
+}
+
+//--------------------------------------------------------------
+void ofApp::updateArduino(){
+        // update the arduino, get any data or messages.
+    // the call to ard.update() is required
+    ard.update();
+}
+
+
+// analog pin event handler, called whenever an analog pin value has changed
+
+//--------------------------------------------------------------
+void ofApp::analogPinChanged(const int & pinNum) {
+    // do something with the analog input. here we're simply going to print the pin number and
+    // value to the screen each time it changes
+    if (pinNum == 0)
+        accelX = ofMap(ard.getAnalog(pinNum), 430,560, 0, 1);
+    if (pinNum == 4)
+        forcePressureLeft = ard.getAnalog(pinNum);
+}
+
