@@ -3,7 +3,7 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
    // ofSetOrientation(OF_ORIENTATION_90_LEFT);
-    ofScale(0.6, 0.6);
+   // ofScale(0.6, 0.6);
     
     // Load a movie file
     lune.load("movies/P-lune-1.mov");
@@ -52,12 +52,12 @@ void ofApp::setup(){
     //parallax.addNewLayer(0, ofVec2f(0, 0), ofVec2f(1536, 768), 5 * 360);
     //parallax.addNewLayer(1, ofVec2f(0, 0), ofVec2f(1236, 768), 5 * 130);
     //parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(1236, 768), 5 * 80);
-    parallax.addNewLayer(0, ofVec2f(0, 0), ofVec2f(2536, 768), 0.1, ofVec2f(-9000, 9000)); // ciel
-    parallax.addNewLayer(1, ofVec2f(0, 0), ofVec2f(1280, 768), 0.3, ofVec2f(-9000, 9000)); // lune
-    parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(1280, 800), 0.7, ofVec2f(-9000, 9000));   // lion
-    parallax.addNewLayer(3, ofVec2f(0, 0), ofVec2f(1280, 800), 0.8, ofVec2f(-9000, 9000));   // nuages
-    parallax.addNewLayer(4, ofVec2f(0, 0), ofVec2f(1280, 800), 1, ofVec2f(-9000, 9000));   // nuages
-    parallax.addNewLayer(5, ofVec2f(0, 0), ofVec2f(1280, 800), 1.3, ofVec2f(-9000, 9000));   // nuages
+    parallax.addNewLayer(0, ofVec2f(0, 0), ofVec2f(800, 1500), 0.1, ofVec2f(-9000, 9000)); // ciel
+    parallax.addNewLayer(1, ofVec2f(0, 0), ofVec2f(800, 1280), 0.3, ofVec2f(-9000, 9000)); // lune
+    parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(800, 1280), 0.7, ofVec2f(-9000, 9000));   // lion
+    parallax.addNewLayer(3, ofVec2f(0, 0), ofVec2f(800, 1280), 0.8, ofVec2f(-9000, 9000));   // nuages
+    parallax.addNewLayer(4, ofVec2f(0, 0), ofVec2f(800, 1280), 1, ofVec2f(-9000, 9000));   // nuages
+    parallax.addNewLayer(5, ofVec2f(0, 0), ofVec2f(800, 1280), 1.5, ofVec2f(-9000, 9000));   // nuages
     parallax.unblurAll();
     
     
@@ -93,7 +93,7 @@ void ofApp::setup(){
 void ofApp::update(){
     ofSetWindowTitle(ofToString(ofGetFrameRate()));
     
-    updateArduino();
+ //   updateArduino();
     
     lune.update();
     lion.update();
@@ -165,7 +165,25 @@ void ofApp::draw(){
 }
 
 //--------------------------------------------------------------
+void ofApp::setupSecondWindow(ofEventArgs & args){
+    ofSetOrientation(OF_ORIENTATION_90_LEFT);
+
+}
+
+//--------------------------------------------------------------
+void ofApp::drawSecondWindow(ofEventArgs & args){
+    parallax.draw();
+ //   ofBackground(255,50,50);
+}
+
+//--------------------------------------------------------------
 void ofApp::keyPressed(int key){
+    parallax.unblurAll();
+    blurID++;
+    if(blurID > parallax.getTotalLayersSize()-1) {
+        blurID = 0;
+    }
+    parallax.blurLayer(blurID);
  }
 
 //--------------------------------------------------------------
@@ -176,9 +194,13 @@ void ofApp::keyReleased(int key){
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
 
-    touchPoint = releasePoint;
+    accelX = ofMap(mouseX, 50,ofGetWidth()-50, 0, 1);
+
+    
+    /*touchPoint = releasePoint;
     releasePoint.set(x, y);
     ofVec2f vel = releasePoint - touchPoint;
+    */
     
     //cout << vel.x << endl;
     

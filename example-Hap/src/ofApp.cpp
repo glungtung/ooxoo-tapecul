@@ -35,31 +35,98 @@ void ofApp::setup(){
     ofBackground(220, 220, 220);
     
     // Load a movie file
-    player.load("movies/ptitbonhomme.mov");
+    //   player.load("movies/ptitbonhomme.mov");
+    player.load("movies/SampleHap.mov");
     
     // Start playback
     player.play();
+    
+    vid.load("movies/IMG_4224.MOV");
+    vid.play();
+    vid.setLoopState(OF_LOOP_NORMAL);
+    
+#ifdef TARGET_OPENGLES
+    shaderBlurX.load("shadersES2/shaderBlurX");
+    shaderBlurY.load("shadersES2/shaderBlurY");
+#else
+    if(ofIsGLProgrammableRenderer()){
+        shaderBlurX.load("shadersGL3/shaderBlurX");
+        shaderBlurY.load("shadersGL3/shaderBlurY");
+    }else{
+        shaderBlurX.load("shadersGL2/shaderBlurX");
+        shaderBlurY.load("shadersGL2/shaderBlurY");
+    }
+#endif
+    
+    cout << player.getWidth() << endl;
+    fboBlurOnePass.allocate(player.getWidth(), player.getHeight());
+    fboBlurTwoPass.allocate(player.getWidth(), player.getHeight());
+    fboVideoPass.allocate(player.getWidth(), player.getHeight());
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     // Signal the player to update
     player.update();
+    vid.update();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     
+    ofEnableAlphaBlending();
+    
+    float blur = ofMap(mouseX, 0, ofGetWidth(), 0, 10, true);
+    
+    
+    
+    //----------------------------------------------------------
+    fboVideoPass.begin();
+    
+    ofSetColor(255, 255, 255);
     if (player.isLoaded())
     {
         // Draw the frame
-        ofSetColor(255, 255, 255);
-        player.draw(20, 30);
+        player.draw(0, 0);
     }
     
     // Draw the FPS display
     ofSetColor(20,20,20);
     ofDrawBitmapString(ofToString(ofGetFrameRate(), 0) + " FPS", 20, 20);
+    
+    fboVideoPass.end();
+
+    
+    //----------------------------------------------------------
+    fboBlurOnePass.begin();
+    
+    shaderBlurX.begin();
+    shaderBlurX.setUniform1f("blurAmnt", blur);
+    
+    fboVideoPass.draw(0,0);
+    
+    shaderBlurX.end();
+    
+    fboBlurOnePass.end();
+    
+    //----------------------------------------------------------
+    fboBlurTwoPass.begin();
+    
+    shaderBlurY.begin();
+    shaderBlurY.setUniform1f("blurAmnt", blur);
+    
+    fboBlurOnePass.draw(0, 0);
+    
+    shaderBlurY.end();
+    
+    fboBlurTwoPass.end();
+    
+    //----------------------------------------------------------
+    ofSetColor(ofColor::white);
+    //fboBlurTwoPass.draw(20, 30);
+    fboBlurOnePass.draw(20, 30);
+    
+
 }
 
 //--------------------------------------------------------------

@@ -47,4 +47,14 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
     
         ofxHapPlayer player;
+    
+    ofVideoPlayer vid;
+    
+    ofShader shaderBlurX;
+    ofShader shaderBlurY;
+    
+    ofFbo fboBlurOnePass;
+    ofFbo fboBlurTwoPass;
+    ofFbo fboVideoPass;
+    
 };

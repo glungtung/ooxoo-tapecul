@@ -34,7 +34,9 @@ class ofApp : public ofBaseApp{
 //    void digitalPinChanged(const int & pinNum);
     void analogPinChanged(const int & pinNum);
     void updateArduino();
-    
+
+    void setupSecondWindow(ofEventArgs & args);
+    void drawSecondWindow(ofEventArgs & args);
     
     ofArduino	ard;
     bool		bSetupArduino;			// flag variable for setting up arduino once

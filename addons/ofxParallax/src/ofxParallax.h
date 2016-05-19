@@ -42,6 +42,8 @@ struct ofxParallaxLayer {
         }
         
         pos = position;
+        
+        initShader();
     }
     
     void setup(ofTexture * tex, ofPoint position) {
@@ -51,6 +53,8 @@ struct ofxParallaxLayer {
         }
         texture = tex;
         pos = position;
+        
+        initShader();
     }
 
     void setup(ofxHapPlayer * play, ofPoint position) {
@@ -60,9 +64,30 @@ struct ofxParallaxLayer {
         }
         player = play;
         pos = position;
+        
+        initShader();
     }
     
-
+    void initShader() {
+        fboBlurOnePass = new ofFbo();
+        fboBlurTwoPass = new ofFbo();
+        fboVideoPass = new ofFbo();
+        
+        int w = (player?player->getWidth():texture->getWidth());
+        int h = (player?player->getHeight():texture->getHeight());
+        
+        fboBlurOnePass->allocate(w, h, GL_RGBA);
+        fboBlurTwoPass->allocate(w, h, GL_RGBA);
+        fboVideoPass->allocate(w, h, GL_RGBA);
+        
+        if(ofIsGLProgrammableRenderer()){
+            shaderBlurX.load("shadersGL3/shaderBlurX");
+            shaderBlurY.load("shadersGL3/shaderBlurY");
+        }else{
+            shaderBlurX.load("shadersGL2/shaderBlurX");
+            shaderBlurY.load("shadersGL2/shaderBlurY");
+        }
+    }
     
     void draw(ofPoint offset) {
         if (player && player->isInitialized()) {
@@ -72,8 +97,53 @@ struct ofxParallaxLayer {
         transformation.makeIdentityMatrix();
         ofPushMatrix();
         transformation.preMultTranslate(pos);
-        if (texture != NULL)
+        if (texture != NULL) {
+            float blur = ofMap(ofGetMouseY(), 0, ofGetHeight(), 0, 10, true);
+            ofEnableAlphaBlending();
+            
+            
+            //----------------------------------------------------------
+            fboVideoPass->begin();
+            ofClear(255, 255, 255, 0);
+            
+            ofSetColor(255, 255, 255);
             texture->draw(0, 0);
+            
+            fboVideoPass->end();
+            
+
+            
+            //----------------------------------------------------------
+            fboBlurOnePass->begin();
+            ofClear(255, 255, 255, 0);
+
+            shaderBlurX.begin();
+            shaderBlurX.setUniform1f("blurAmnt", blur);
+           
+            fboVideoPass->draw(0,0);
+            
+            shaderBlurX.end();
+            
+            fboBlurOnePass->end();
+            
+            //----------------------------------------------------------
+            fboBlurTwoPass->begin();
+            ofClear(255, 255, 255, 0);
+
+            shaderBlurY.begin();
+            shaderBlurY.setUniform1f("blurAmnt", blur);
+            
+            fboBlurOnePass->draw(0, 0);
+            
+            shaderBlurY.end();
+            
+            fboBlurTwoPass->end();
+            
+            //----------------------------------------------------------
+            ofSetColor(ofColor::white);
+            fboBlurTwoPass->draw(0, 0);
+            
+        }
         ofPopMatrix();
     }
     
@@ -82,12 +152,18 @@ struct ofxParallaxLayer {
     ofTexture * texture;
     ofPoint pos;
     ofMatrix4x4 transformation;
+    
+    ofShader shaderBlurX;
+    ofShader shaderBlurY;
+    ofFbo *fboBlurOnePass;
+    ofFbo *fboBlurTwoPass;
+    ofFbo *fboVideoPass;
 
 };
 
 struct ofxParallaxLayers {
 
-    ofxParallaxLayers() : shader(NULL), fboLayer(NULL), offset(0,0), isBlurred(false), hasRenderedTexture(false), blurAmount(1), lastFrameCollision(false), collision(0,0) {
+    ofxParallaxLayers() :  offset(0,0), isBlurred(false), hasRenderedTexture(false), blurAmount(1), lastFrameCollision(false), collision(0,0) {
         
     }
     ~ofxParallaxLayers() {
@@ -130,28 +206,7 @@ struct ofxParallaxLayers {
         //  scale = ofVec3f(0.5f,0.5f,0.5f);
         scale = ofVec3f(1.0f,1.0f,1.0f);
         dynamicScale = ofVec3f(1.0f,1.0f,1.0f);
-        fboLayer = new ofFbo();
-        
-        if(size.x < 1 || size.y < 1) {
-            ofLog(OF_LOG_ERROR, "ofxParallax::Adding a layer. Size is not valid");
-            size = ofVec2f(64,64);
-        }
-        fboLayer->allocate(size.x, size.y, GL_RGBA);
-        
-        if(ofIsGLProgrammableRenderer() == true) {
-#ifdef TARGET_OPENGLES
-            shader = new ofShader();
-            shader->setupShaderFromSource(GL_VERTEX_SHADER, blurVertShaderES2);
-            shader->setupShaderFromSource(GL_FRAGMENT_SHADER, blurFragShaderES2);
-#else
-//            shader = new ofShader();
-//            shader->setupShaderFromSource(GL_VERTEX_SHADER, blurXvertShaderGL3);
-//            shader->setupShaderFromSource(GL_FRAGMENT_SHADER, blurXfragShaderGL3);
-#endif
-//            initShader();
-        }  else {
-            ofLogError("Application must be using ofGLProgrammableRenderer");
-        }
+
     }
     
     void update(float impulse) {
@@ -213,7 +268,7 @@ struct ofxParallaxLayers {
         ofPushMatrix();
         ofMultMatrix(transformation);
         if(layer.size() != 0) {
-            if(hasRenderedTexture == true) {
+/*            if(hasRenderedTexture == true) {
                 fboLayer->draw(ofVec2f(0,0));
             } else {
             if(isBlurred && hasRenderedTexture == false) {
@@ -232,12 +287,20 @@ struct ofxParallaxLayers {
                 }
             }
             }
+ */
+                int number = layer.size()-1;
+                for(int i = 0; i<=number;i++) {
+                    ofxParallaxLayer* theLayer = layer[i];
+                    theLayer->draw(ofVec2f(0,0));
+                }
+
+                
         }
         ofPopMatrix();
     }
     
     void beginShader() {
-        
+ /*
         fboLayer->begin();
         ofClear(255, 0);
         shader->begin();
@@ -246,23 +309,29 @@ struct ofxParallaxLayers {
         shader->setUniform1f("textureWidth", ofGetWidth());
         shader->setUniform1f("bloom", isBlurred);
         ofPushMatrix();
-        ofTranslate(offset.y * -1, 0);
+       // ofTranslate(offset.y * -1, 0);
+        
+        //transformation.makeIdentityMatrix();
+        //ofPushMatrix();
+        //transformation.preMultTranslate(ofVec2f(0,0));
+*/
     }
     
     void endShader() {
-        ofPopMatrix();
+ /*       ofPopMatrix();
         shader->end();
         fboLayer->end();
         hasRenderedTexture = true;
-        
+   */
     }
     
     
     void initShader() {
-        if(shader != NULL) {
+/*        if(shader != NULL) {
             shader->bindDefaults();
             shader->linkProgram();
         }
+ */
     }
     
     bool hasCollided() {
@@ -292,8 +361,7 @@ struct ofxParallaxLayers {
     
     //-----------------
     vector<ofxParallaxLayer*> layer;
-    ofFbo* fboLayer;
-    ofShader * shader;
+
     ofVec2f offset;
     ofVec2f origin;
     ofVec2f size;
