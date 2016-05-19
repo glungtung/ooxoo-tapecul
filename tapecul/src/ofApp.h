@@ -5,8 +5,19 @@
 #include "ofxParallax.h"
 #include "ofxOsc.h"
 #include "ofxEasing.h"
-#include "ofxHapPlayer.h"
 #include "ofEvents.h"
+
+#if defined(TARGET_WIN32)
+#include "ofxDSHapVideoPlayer.h"
+#define ofxHapPlayer ofxDSHapVideoPlayer
+#else
+#include "ofxHapPlayer.h"
+#endif
+
+
+#if defined(TARGET_WIN32)
+#else
+#endif
 
 #define PORT 8001
 
@@ -68,6 +79,8 @@ class ofApp : public ofBaseApp{
     
     int current_msg_string;
     
+
     ofxHapPlayer lune, lion, nuage3, nuage4, nuage5;
+
 
 };

@@ -10,7 +10,12 @@
 
 #include "ofMain.h"
 #include "ofxParallaxShader.h"
+#if defined(TARGET_WIN32)
+#include "ofxDSHapVideoPlayer.h"
+#define ofxHapPlayer ofxDSHapVideoPlayer
+#else
 #include "ofxHapPlayer.h"
+#endif
 
 
 struct ofxParallaxLayer {
