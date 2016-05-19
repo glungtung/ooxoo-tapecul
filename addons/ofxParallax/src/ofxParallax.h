@@ -103,7 +103,7 @@ struct ofxParallaxLayer {
         ofPushMatrix();
         transformation.preMultTranslate(pos);
         if (texture != NULL) {
-            float blur = ofMap(ofGetMouseY(), 0, ofGetHeight(), 0, 10, true);
+           // float blur = ofMap(ofGetMouseY(), 0, ofGetHeight(), 0, 10, true);
             ofEnableAlphaBlending();
             
             
@@ -152,11 +152,17 @@ struct ofxParallaxLayer {
         ofPopMatrix();
     }
     
+    void setBlur(float blurAmount) {
+        blur = blurAmount;
+    }
+    
     // Variables
     ofxHapPlayer *player;
     ofTexture * texture;
     ofPoint pos;
     ofMatrix4x4 transformation;
+    
+    float blur;
     
     ofShader shaderBlurX;
     ofShader shaderBlurY;
@@ -168,7 +174,7 @@ struct ofxParallaxLayer {
 
 struct ofxParallaxLayers {
 
-    ofxParallaxLayers() :  offset(0,0), isBlurred(false), hasRenderedTexture(false), blurAmount(1), lastFrameCollision(false), collision(0,0) {
+    ofxParallaxLayers() :  offset(0,0), isBlurred(false), hasRenderedTexture(false), blurAmount(1), lastFrameCollision(false), collision(0,0), blurStart(0.0), blurSpeed(1.0) {
         
     }
     ~ofxParallaxLayers() {
@@ -250,6 +256,7 @@ struct ofxParallaxLayers {
         if(layer.size() != 0) {
             lastFrameCollision = false;
             offset.y = origin.x - target * ofGetWidth() * speed;
+            blurAmount = blurStart + target * blurSpeed;
             
             if(offset.y <= collision.x) {
                 offset.y = collision.x;
@@ -296,6 +303,7 @@ struct ofxParallaxLayers {
                 int number = layer.size()-1;
                 for(int i = 0; i<=number;i++) {
                     ofxParallaxLayer* theLayer = layer[i];
+                    theLayer->setBlur(blurAmount);
                     theLayer->draw(ofVec2f(0,0));
                 }
 
@@ -381,6 +389,8 @@ struct ofxParallaxLayers {
     float speed;
     float blurAmount;
     bool lastFrameCollision;
+    float blurStart;
+    float blurSpeed;
 };
 
 
@@ -483,6 +493,12 @@ public:
             
             layers.push_back(theLayer);
         }
+    }
+
+    void addNewLayer(int layer, ofVec2f origin, ofVec2f size, float speed, ofVec2f collision, float blurStart, float blurSpeed) {
+        addNewLayer(layer, origin, size, speed, collision);
+        layers.back()->blurStart = blurStart;
+        layers.back()->blurSpeed = blurSpeed;
     }
     
     void addImageToLayer(int layer, string imagePath, ofPoint pos) {

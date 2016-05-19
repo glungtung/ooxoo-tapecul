@@ -4,10 +4,10 @@
 //========================================================================
 int main( ){
     ofGLFWWindowSettings settings;
-    settings.setGLVersion(3,2);
+    //settings.setGLVersion(3,2);
 
-    settings.width = 1280;
-    settings.height = 800;
+    settings.width = 1680;
+    settings.height = 1050;
     settings.monitor = 0;
     settings.setPosition(ofVec2f(0,0));
     //settings.multiMonitorFullScreen = true;
@@ -15,8 +15,8 @@ int main( ){
     settings.resizable = false;
     shared_ptr<ofAppBaseWindow> mainWindow = ofCreateWindow(settings);
     
-    settings.width = 1024;
-    settings.height = 768;
+    settings.width = 1600;
+    settings.height = 1200;
     settings.setPosition(ofVec2f(1680,0));
     settings.monitor = 1;
     settings.resizable = false;

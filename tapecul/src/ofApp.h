@@ -82,5 +82,7 @@ class ofApp : public ofBaseApp{
 
     ofxHapPlayer lune, lion, nuage3, nuage4, nuage5;
 
+    ofFbo firstScreen, secondScreen;
+    
 
 };

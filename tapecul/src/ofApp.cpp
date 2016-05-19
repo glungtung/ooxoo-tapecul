@@ -2,7 +2,6 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-   // ofSetOrientation(OF_ORIENTATION_90_LEFT);
    // ofScale(0.6, 0.6);
     
     // Load a movie file
@@ -52,12 +51,12 @@ void ofApp::setup(){
     //parallax.addNewLayer(0, ofVec2f(0, 0), ofVec2f(1536, 768), 5 * 360);
     //parallax.addNewLayer(1, ofVec2f(0, 0), ofVec2f(1236, 768), 5 * 130);
     //parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(1236, 768), 5 * 80);
-    parallax.addNewLayer(0, ofVec2f(0, 0), ofVec2f(800, 1500), 0.1, ofVec2f(-9000, 9000)); // ciel
+    parallax.addNewLayer(0, ofVec2f(0, 0), ofVec2f(800, 1500), 0.1, ofVec2f(-9000, 9000), 0, 0); // ciel
     parallax.addNewLayer(1, ofVec2f(0, 0), ofVec2f(800, 1280), 0.3, ofVec2f(-9000, 9000)); // lune
-    parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(800, 1280), 0.7, ofVec2f(-9000, 9000));   // lion
-    parallax.addNewLayer(3, ofVec2f(0, 0), ofVec2f(800, 1280), 0.8, ofVec2f(-9000, 9000));   // nuages
-    parallax.addNewLayer(4, ofVec2f(0, 0), ofVec2f(800, 1280), 1, ofVec2f(-9000, 9000));   // nuages
-    parallax.addNewLayer(5, ofVec2f(0, 0), ofVec2f(800, 1280), 1.5, ofVec2f(-9000, 9000));   // nuages
+    parallax.addNewLayer(2, ofVec2f(0, 0), ofVec2f(800, 1280), 0.7, ofVec2f(-9000, 9000), 0, 1);   // lion
+    parallax.addNewLayer(3, ofVec2f(0, 0), ofVec2f(800, 1280), 0.8, ofVec2f(-9000, 9000), 1, -1);   // nuages
+    parallax.addNewLayer(4, ofVec2f(0, 0), ofVec2f(800, 1280), 1, ofVec2f(-9000, 9000), 2, -2);   // nuages
+    parallax.addNewLayer(5, ofVec2f(0, 0), ofVec2f(800, 1280), 1.5, ofVec2f(-9000, 9000), 2, -1);   // nuages
     parallax.unblurAll();
     
     
@@ -87,6 +86,14 @@ void ofApp::setup(){
     // call setupArduino()
     ofAddListener(ard.EInitialized, this, &ofApp::setupArduino);
     bSetupArduino	= false;	// flag so we setup arduino when its ready, you don't need to touch this :)
+    
+    firstScreen.allocate(800, 1280);
+    secondScreen.allocate(800, 1280);
+    
+  //  firstScreen.getTextureReference().getTextureData().bFlipTexture = true;
+  //  secondScreen.getTextureReference().getTextureData().bFlipTexture = true;
+
+
 }
 
 //--------------------------------------------------------------
@@ -152,27 +159,51 @@ void ofApp::update(){
     
     parallax.updateTarget(targetX);
     
+    firstScreen.begin();
+    parallax.draw();
+    firstScreen.end();
+    
+    secondScreen.begin();
+    parallax.updateTarget(1.0 - targetX);
+    parallax.draw();
+    secondScreen.end();
+    
     if(currentImpulseEased != 0.0f) {
         //parallax.update(currentImpulseEased);
     }
+
+
 
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    parallax.draw();
+   // parallax.draw();
+   // ofSetOrientation(OF_ORIENTATION_90_RIGHT);
+    ofPushMatrix();
+    ofTranslate(0, ofGetHeight());
+    ofRotateZ(-90);
+    firstScreen.draw(0, 0, 1050, 1680);
+    ofPopMatrix();
+   // ofSetOrientation(OF_ORIENTATION_DEFAULT);
+
 
 }
 
 //--------------------------------------------------------------
 void ofApp::setupSecondWindow(ofEventArgs & args){
-    ofSetOrientation(OF_ORIENTATION_90_LEFT);
+//    ofSetOrientation(OF_ORIENTATION_90_LEFT);
 
 }
 
 //--------------------------------------------------------------
 void ofApp::drawSecondWindow(ofEventArgs & args){
-    parallax.draw();
+    ofPushMatrix();
+    ofTranslate(0, 1200);
+    ofRotateZ(-90);
+    secondScreen.draw(0, 0, 1200, 1600);
+    ofPopMatrix();
+    // parallax.draw();
  //   ofBackground(255,50,50);
 }
 
